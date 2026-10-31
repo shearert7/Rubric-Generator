@@ -1,0 +1,6 @@
+{
+  "name": "ACARA Rubric Generator",
+  "description": "Create custom assessment rubrics by selecting Australian Curriculum v9.0 and QCAA standard elaborations across multiple subjects with PDF and Google Doc export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
