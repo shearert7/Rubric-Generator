@@ -1,4 +1,6 @@
 import { ElaborationRow, CombinedRubricRow, RubricConfig } from '../types/rubric';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export const getScaleLabel = (grade: 'A' | 'B' | 'C' | 'D' | 'E', scaleType: 'letters' | 'qcaa_elaborations'): string => {
   if (scaleType === 'qcaa_elaborations') {
@@ -137,6 +139,7 @@ export const buildRubricHtml = (rows: ElaborationRow[], config: RubricConfig): s
       <thead>
         <tr style="background-color: #374151; color: #ffffff;">
           <th style="border: 1px solid #374151; background-color: #374151; color: #ffffff; padding: 6px 8px; text-align: left; font-size: 8.5pt; width: 140px;">
+            Strand / Sub-strand
           </th>
           ${headerCells}
         </tr>
@@ -144,7 +147,7 @@ export const buildRubricHtml = (rows: ElaborationRow[], config: RubricConfig): s
           <tr style="background-color: #f3f4f6; color: #374151;">
             <th style="border: 1px solid #4b5563; background-color: #f3f4f6; padding: 4px 6px;"></th>
             <th colspan="5" style="border: 1px solid #4b5563; background-color: #f3f4f6; color: #374151; padding: 4px 8px; font-weight: normal; font-size: 8pt; font-style: italic; text-align: left;">
-              ${config.subheaderText || 'The folio of student work has the following characteristics: work has the following characteristics:'}
+              ${config.subheaderText || 'The folio of student work has the following characteristics:'}
             </th>
           </tr>
         ` : ''}
@@ -258,8 +261,109 @@ export const copyForGoogleDocs = async (rows: ElaborationRow[], config: RubricCo
 };
 
 /**
+ * Downloads an actual PDF file directly formatted in landscape with official styling
+ */
+export const downloadLandscapePdf = (rows: ElaborationRow[], config: RubricConfig): boolean => {
+  try {
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'pt',
+      format: 'a4',
+    });
+
+    const combinedRows = groupSelectedRows(rows, config.sortByQcaaOrder);
+    const distinctSubjects = new Set(rows.map(r => r.subject));
+    const showSubject = distinctSubjects.size > 1;
+
+    const grades: ('A' | 'B' | 'C' | 'D' | 'E')[] = ['A', 'B', 'C', 'D', 'E'];
+    const head: any[] = [
+      [
+        'Strand / Sub-strand',
+        ...grades.map(g => getScaleLabel(g, config.scaleType))
+      ]
+    ];
+
+    if (config.includeSubheader) {
+      head.push([
+        '',
+        {
+          content: config.subheaderText || 'The folio of student work has the following characteristics:',
+          colSpan: 5,
+          styles: { fontStyle: 'italic', fillColor: [243, 244, 246], textColor: [55, 65, 81] }
+        }
+      ]);
+    }
+
+    const body = combinedRows.map(row => {
+      const parts: string[] = [];
+      if (showSubject) {
+        parts.push(row.subject.toUpperCase());
+      }
+      parts.push(row.strand);
+      if (row.subStrand && row.subStrand !== row.strand) {
+        parts.push(row.subStrand);
+      }
+      const firstCol = parts.join('\n');
+
+      const descCells = grades.map(g => {
+        const items = row.items
+          .map(item => item[g])
+          .filter(Boolean)
+          .map(text => `- ${text}`)
+          .join('\n\n');
+        return items;
+      });
+
+      return [firstCol, ...descCells];
+    });
+
+    autoTable(doc, {
+      head,
+      body,
+      theme: 'grid',
+      styles: {
+        fontSize: 7.5,
+        cellPadding: 4.5,
+        textColor: [20, 20, 20],
+        lineColor: [75, 85, 99],
+        lineWidth: 0.5,
+        valign: 'top',
+        overflow: 'linebreak',
+      },
+      headStyles: {
+        fillColor: [55, 65, 81],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: {
+          cellWidth: 105,
+          fillColor: [249, 250, 251],
+          fontStyle: 'bold',
+          halign: 'left',
+        },
+      },
+      margin: { top: 20, right: 20, bottom: 20, left: 20 },
+    });
+
+    const distinctSubjectNames = Array.from(distinctSubjects).join('_');
+    const filename = `QCAA_Rubric_${(distinctSubjectNames || config.subject).replace(/[^a-zA-Z0-9_-]/g, '_')}_${config.yearLevel.replace(/\s+/g, '_')}.pdf`;
+    doc.save(filename);
+    return true;
+  } catch (err) {
+    console.error('PDF export failed:', err);
+    return false;
+  }
+};
+
+/**
  * Trigger clean landscape print dialog for PDF saving
  */
 export const printLandscapePdf = (): void => {
-  window.print();
+  try {
+    window.print();
+  } catch (e) {
+    console.warn('Direct print failed:', e);
+  }
 };

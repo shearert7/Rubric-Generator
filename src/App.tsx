@@ -9,7 +9,7 @@ import { copyForGoogleDocs, groupSelectedRows } from './utils/exportUtils';
 export default function App() {
   // Selected row IDs for current rubric - starts empty or from saved session
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>(() => {
-    const saved = localStorage.getItem('acara_selected_dot_points_v5');
+    const saved = localStorage.getItem('acara_selected_dot_points_v6');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -17,7 +17,6 @@ export default function App() {
         console.error('Failed to parse saved selections:', e);
       }
     }
-    // Blank by default, or you can pick any criteria
     return [];
   });
 
@@ -28,7 +27,7 @@ export default function App() {
 
   // Custom user-imported rows from PDF text
   const [customRows, setCustomRows] = useState<ElaborationRow[]>(() => {
-    const saved = localStorage.getItem('acara_custom_rows_v5');
+    const saved = localStorage.getItem('acara_custom_rows_v6');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -46,7 +45,7 @@ export default function App() {
   const handleAddCustomRows = (newRows: ElaborationRow[]) => {
     setCustomRows(prev => {
       const updated = [...prev, ...newRows];
-      localStorage.setItem('acara_custom_rows_v5', JSON.stringify(updated));
+      localStorage.setItem('acara_custom_rows_v6', JSON.stringify(updated));
       return updated;
     });
     // Auto-select the newly added rows
@@ -55,7 +54,7 @@ export default function App() {
 
   // Rubric Configuration
   const [config, setConfig] = useState<RubricConfig>(() => {
-    const saved = localStorage.getItem('acara_rubric_config_v5');
+    const saved = localStorage.getItem('acara_rubric_config_v6');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -66,20 +65,28 @@ export default function App() {
     return DEFAULT_CONFIG;
   });
 
-  // Current active navigation tab: 'select' | 'preview'
-  const [activeTab, setActiveTab] = useState<'select' | 'preview'>(() => {
-    return selectedRowIds.length > 0 ? 'preview' : 'select';
-  });
+  // Current active navigation tab: 'select' | 'rubric'
+  const [activeTab, setActiveTab] = useState<'select' | 'rubric'>('select');
   const [copied, setCopied] = useState(false);
 
   // Save to localStorage
   useEffect(() => {
-    localStorage.setItem('acara_selected_dot_points_v5', JSON.stringify(selectedRowIds));
+    localStorage.setItem('acara_selected_dot_points_v6', JSON.stringify(selectedRowIds));
   }, [selectedRowIds]);
 
   useEffect(() => {
-    localStorage.setItem('acara_rubric_config_v5', JSON.stringify(config));
+    localStorage.setItem('acara_rubric_config_v6', JSON.stringify(config));
   }, [config]);
+
+  // Keep rubricConfig in sync with selector subject & year if user changes them
+  useEffect(() => {
+    setConfig(prev => ({
+      ...prev,
+      learningArea: selectedArea,
+      subject: selectedSubject,
+      yearLevel: selectedYear
+    }));
+  }, [selectedArea, selectedSubject, selectedYear]);
 
   // Selected rows in order: either strict QCAA document order or custom user sequence
   const selectedRows = useMemo(() => {
@@ -133,10 +140,10 @@ export default function App() {
     setSelectedRowIds(prev => prev.filter(id => !rowIdsToRemove.includes(id)));
   };
 
-  // RESET BUTTON: Blanks everything completely as requested
+  // RESET BUTTON: Blanks everything completely
   const handleResetAll = () => {
-    localStorage.removeItem('acara_selected_dot_points_v5');
-    localStorage.removeItem('acara_rubric_config_v5');
+    localStorage.removeItem('acara_selected_dot_points_v6');
+    localStorage.removeItem('acara_rubric_config_v6');
     setSelectedRowIds([]); // BLANK EVERYTHING (0 criteria selected)
     setConfig(DEFAULT_CONFIG);
   };
@@ -174,7 +181,7 @@ export default function App() {
             onSelectSubject={setSelectedSubject}
             selectedYear={selectedYear}
             onSelectYear={setSelectedYear}
-            onProceedToPreview={() => setActiveTab('preview')}
+            onProceedToPreview={() => setActiveTab('rubric')}
             onCopyTableQuick={handleCopyTable}
             onResetAll={handleResetAll}
             onAddCustomRows={handleAddCustomRows}
@@ -182,7 +189,7 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'preview' && (
+        {activeTab === 'rubric' && (
           <RubricPreview
             config={config}
             onUpdateConfig={handleUpdateConfig}
@@ -199,10 +206,10 @@ export default function App() {
       <footer className="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500 no-print mt-auto">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px]">
           <div>
-            Australian Curriculum in Queensland (ACiQ) v9.0 · Official Standards Elaborations
+            Australian Curriculum in Queensland (ACiQ) v9.0 · Official Standards Elaborations Rubric Generator
           </div>
           <div className="text-slate-400">
-            Selected criteria from the same area are automatically combined with hyphen dashes (<kbd className="font-mono text-[10px]">-</kbd>) for clean Google Docs pasting
+            Export directly to Landscape PDF, Google Docs (no bullet formatting issues), or Word .doc
           </div>
         </div>
       </footer>

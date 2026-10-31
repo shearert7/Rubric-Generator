@@ -5,8 +5,8 @@ export type ScaleType = 'letters' | 'qcaa_elaborations';
 export interface ElaborationRow {
   id: string;
   orderIndex: number;
-  learningArea: string; // e.g. 'Science', 'Technologies', 'The Arts', 'HASS', 'English', 'Mathematics', 'Health & Physical Education'
-  subject: string; // e.g. 'Science', 'Design and Technologies', 'Digital Technologies', 'Music', 'Visual Arts', 'Drama', 'English', 'Mathematics', 'History', 'Geography'
+  learningArea: string; // e.g. 'Science', 'Technologies', 'The Arts', 'HASS', 'English', 'Mathematics', 'Health & Physical Education', 'Languages'
+  subject: string; // e.g. 'Science', 'Design and Technologies', 'Digital Technologies', 'Music', 'Visual Arts', 'Drama', 'English', 'Mathematics', 'History', 'Geography', etc.
   yearLevel: string; // 'Year 7' | 'Year 8' | 'Year 9' | 'Year 10' | 'Years 7–8' | 'Years 9–10'
   strand: string; // e.g. 'Science understanding', 'Exploring and responding', 'Knowledge and understanding'
   subStrand?: string; // e.g. 'Physical sciences', 'Technologies contexts' (optional if strand is top-level like in Music)

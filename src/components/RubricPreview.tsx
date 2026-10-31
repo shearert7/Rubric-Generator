@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ElaborationRow, RubricConfig } from '../types/rubric';
 import { 
   downloadWordDoc, 
+  downloadLandscapePdf,
   copyForGoogleDocs, 
   printLandscapePdf, 
   getScaleLabel,
@@ -13,6 +14,7 @@ import {
   Check, 
   ExternalLink, 
   FileText,
+  Download,
   ArrowUp,
   ArrowDown,
   Trash2,
@@ -39,6 +41,7 @@ export const RubricPreview: React.FC<RubricPreviewProps> = ({
   onBackToSelect,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [pdfSaved, setPdfSaved] = useState(false);
 
   // Group multiple selected dot points from the same criteria into one table row
   const combinedRows = groupSelectedRows(selectedRows, config.sortByQcaaOrder);
@@ -52,6 +55,14 @@ export const RubricPreview: React.FC<RubricPreviewProps> = ({
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 3500);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    const success = downloadLandscapePdf(selectedRows, config);
+    if (success) {
+      setPdfSaved(true);
+      setTimeout(() => setPdfSaved(false), 3000);
     }
   };
 
@@ -153,28 +164,43 @@ export const RubricPreview: React.FC<RubricPreviewProps> = ({
           <button
             onClick={handleCopyForGoogleDocs}
             disabled={selectedRows.length === 0}
-            className="px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all flex items-center gap-1.5 shadow-xs active:scale-98 ml-1"
+            className="px-3.5 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all flex items-center gap-1.5 shadow-xs active:scale-98 ml-1"
           >
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
             <span>{copied ? 'Copied Pure Table!' : 'Copy Table for Google Docs'}</span>
           </button>
 
+          {/* Direct PDF Download */}
+          <button
+            onClick={handleDownloadPdf}
+            disabled={selectedRows.length === 0}
+            title="Download rubric as a clean landscape PDF file"
+            className="px-3 py-1.5 text-xs font-semibold bg-rose-700 hover:bg-rose-600 text-white rounded-lg transition-all flex items-center gap-1.5 shadow-xs active:scale-98"
+          >
+            {pdfSaved ? <Check className="w-3.5 h-3.5" /> : <Download className="w-3.5 h-3.5" />}
+            <span>{pdfSaved ? 'Saved PDF!' : 'Save PDF'}</span>
+          </button>
+
+          {/* Word .doc download */}
           <button
             onClick={handleDownloadDoc}
             disabled={selectedRows.length === 0}
+            title="Download Word-compatible (.doc) rubric"
             className="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all flex items-center gap-1 shadow-xs"
           >
             <FileText className="w-3.5 h-3.5" />
             <span>.doc</span>
           </button>
 
+          {/* Browser Print / Print Dialog */}
           <button
             onClick={handlePrint}
             disabled={selectedRows.length === 0}
-            className="px-3 py-1.5 text-xs font-medium bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-all flex items-center gap-1 shadow-xs"
+            title="Open system print dialog"
+            className="px-2.5 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-all flex items-center gap-1"
           >
-            <Printer className="w-3.5 h-3.5" />
-            <span>PDF</span>
+            <Printer className="w-3.5 h-3.5 text-slate-500" />
+            <span>Print</span>
           </button>
         </div>
       </div>

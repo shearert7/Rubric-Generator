@@ -2,8 +2,8 @@ import React from 'react';
 import { Copy, Check, Layers, Table, RotateCcw } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'select' | 'preview';
-  setActiveTab: (tab: 'select' | 'preview') => void;
+  activeTab: 'select' | 'rubric';
+  setActiveTab: (tab: 'select' | 'rubric') => void;
   selectedCount: number;
   onCopyTable: () => void;
   onResetAll: () => void;
@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-xs no-print">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 h-14 sm:h-16">
-          {/* Zone 1: Single text element wordmark */}
+          {/* Brand Wordmark */}
           <div className="flex items-center gap-2.5 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold text-xs tracking-wider">
               AC
@@ -35,7 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           </div>
 
-          {/* Zone 2: Navigation Links */}
+          {/* Navigation Links */}
           <nav className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium">
             <button
               onClick={() => setActiveTab('select')}
@@ -53,23 +53,23 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('preview')}
+              onClick={() => setActiveTab('rubric')}
               className={`px-3 py-1.5 rounded-md transition-colors whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
-                activeTab === 'preview'
+                activeTab === 'rubric'
                   ? 'bg-slate-100 text-slate-900 font-semibold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
               <Table className="w-3.5 h-3.5 text-slate-500" />
-              <span>2. Rubric Table</span>
+              <span>2. Rubric Preview & Export</span>
             </button>
           </nav>
 
-          {/* Zone 3: Actions */}
+          {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={onResetAll}
-              title="Reset all selections and settings"
+              title="Reset all selections and settings to blank"
               className="hidden sm:flex text-xs font-medium text-slate-500 hover:text-rose-600 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 hover:bg-rose-50 transition-colors items-center gap-1"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Copied Table!' : `Copy for Google Docs (${selectedCount})`}</span>
+              <span>{copied ? 'Copied Table!' : `Copy Table (${selectedCount})`}</span>
             </button>
           </div>
         </div>
